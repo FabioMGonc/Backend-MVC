@@ -1,12 +1,106 @@
 import Customer from "../models/Customer.js";
-
+import { Op } from "sequelize";
+import { parseISO, isValid } from "date-fns";
+import Contact from "../models/Contact.js";
 
 class CustomersController {
+
     // Lista todos clientes
     async index(req, res) {
+        const {name, email, createdBefore, createdAfter, updatedBefore, updatedAfter, sort} = req.query;
+        const page = Number(req.query.page || 1);
+        const limit = Number(req.query.limit || 10);
+        let where = {};
+        let order = [];
+        let offset = (page - 1) * limit;
+
+        if (name) {
+            where = {
+                ...where,
+                name: {
+                    [Op.iLike]: `%${name}%`,
+
+                }
+            }
+        }
+
+        if(email) {
+            where = {
+                ...where,
+                email: {
+                    [Op.iLike]: `%${email}%`,            
+                }
+            }
+        }
+
+        if (createdBefore) {
+            const date = parseISO(createdBefore);
+
+            if (!isValid(date)) {
+                return res.status(400).json({ error: "Invalid createdBefore date" })
+            }
+            where.createdAt = {
+                ...where.createdAt,
+                [Op.lte]: parseISO(createdBefore),
+            }
+        }
+
+        if (createdAfter) {
+            const date = parseISO(createdAfter);
+
+            if (!isValid(date)) {
+                return res.status(400).json({ error: "Invalid createdAfter date" })
+            }
+            where.createdAt = {
+                ...where.createdAt,
+                [Op.gte]: parseISO(createdAfter),
+            }
+        }
+        if (updatedBefore) {
+            const date = parseISO(updatedBefore);
+
+            if (!isValid(date)) {
+                return res.status(400).json({ error: "Invalid updatedBefore date" })
+            }
+            where.updatedAt = {
+                ...where.updatedAt,
+                [Op.lte]: parseISO(updatedBefore),
+            }
+            
+        }
+        if (updatedAfter) {
+            const date = parseISO(updatedAfter);
+
+            if (!isValid(date)) {
+                return res.status(400).json({ error: "Invalid updatedAfter date" })
+            }
+
+            where.updatedAt = {
+                ...where.updatedAt,
+                [Op.gte]: parseISO(updatedAfter),
+            }
+        }
+        if (sort) {
+            order = sort.split(",").map(item => item.split(":"));
+        }
+
         const data = await Customer.findAll({
-            limit: 1000
+            where: where,
+            include: [
+                {
+                    model: Contact,
+                    attributes: ["id"],
+                }
+            ],
+            limit: limit,
+            offset: offset,
+            order: order,
         });
+
+        
+
+
+
         return res.json(data);
     }
 
