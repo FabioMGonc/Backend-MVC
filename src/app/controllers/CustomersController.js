@@ -19,7 +19,6 @@ class CustomersController {
                 ...where,
                 name: {
                     [Op.iLike]: `%${name}%`,
-
                 }
             }
         }
@@ -96,10 +95,6 @@ class CustomersController {
             offset: offset,
             order: order,
         });
-
-        
-
-
 
         return res.json(data);
     }
