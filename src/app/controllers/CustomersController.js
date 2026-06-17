@@ -7,6 +7,7 @@ class CustomersController {
 
     // Lista todos clientes
     async index(req, res) {
+        // Extrai os parâmetros de consulta da requisição, como nome, email, datas de criação e atualização, ordenação, paginação, etc.
         const {name, email, createdBefore, createdAfter, updatedBefore, updatedAfter, sort} = req.query;
         const page = Number(req.query.page || 1);
         const limit = Number(req.query.limit || 10);
@@ -14,6 +15,7 @@ class CustomersController {
         let order = [];
         let offset = (page - 1) * limit;
 
+        // 
         if (name) {
             where = {
                 ...where,
