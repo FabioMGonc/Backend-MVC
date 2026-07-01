@@ -1,3 +1,4 @@
+import * as Yup from "yup";
 import Customer from "../models/Customer.js";
 import { Op } from "sequelize";
 import { parseISO, isValid } from "date-fns";
@@ -90,6 +91,7 @@ class CustomersController {
             include: [
                 {
                     model: Contact,
+                    as: "contacts",
                     attributes: ["id"],
                 }
             ],
@@ -106,35 +108,46 @@ class CustomersController {
         const id = Number(req.params.id);
         const customer = await Customer.findByPk(id);
 
-        const status = customer ? 200 : 404;
+        const status = customer ? 200 : 400;
 
         return res.status(status).json(customer || {error: "Cliente não encontrado!"});
     }
 
     // Cria um novo cliente
     async create(req, res) {
-        const {name, email} = req.body;
 
-        // Validação se os dados estão presentes
-        if(!name || !email){ 
-            return res.status(400).json({error: "Nome e Email são obrigatórios!"});
+        const schema = Yup.object().shape({
+            name: Yup.string().required(),
+            email: Yup.string().email().required(),
+        });
+
+        if (!(await schema.isValid(req.body))){
+            return res.status(400).json({error: "Os dados são invalidos!"});
         }
 
         // criação do novo cliente iterando a id com base no tamanho do array
-        const newCustomer = await Customer.create({name, email});
+        const newCustomer = await Customer.create(req.body);
         res.status(201).json(newCustomer);
     }
 
     // Atualiza dados de um cliente ja existente
     async update(req, res) {
+        const schema = Yup.object().shape({
+            name: Yup.string(),
+            email: Yup.string().email(),
+        });
+
+        if (!(await schema.isValid(req.body))){
+            return res.status(400).json({error: "Os dados são invalidos!"});
+        }
+
+        const {name, email} = req.body;
+        if (!name && !email) {
+            return res.status(400).json({error: "É necessário informar ao menos um campo para atualização!"})
+        }
+
         const customer = await Customer.findByPk(Number(req.params.id));
-
-        if(!customer) return res.status(404).json({error: "Cliente não encontrado!"});
-
-        const {name, email} =req.body;
-        // Atualiza os dados do cliente usando o método update do Sequelize, passando os novos dados
-        if(!name && !email) return res.status(400).json({error: "Pelo menos um campo deve ser fornecido para atualização!"});
-
+        if(!customer) return res.status(400).json({error: "Cliente não encontrado!"});
 
         await customer.update({name, email});
         res.status(200).json(customer);
@@ -145,8 +158,7 @@ class CustomersController {
         // Busca o cliente pelo ID usando o método findByPk do Sequelize, que retorna o cliente ou null se não encontrado
         const customer = await Customer.findByPk(Number(req.params.id))
 
-        if(!customer) return res.status(404).json({error: "Cliente não encontrado!"});
-
+        if(!customer) return res.status(400).json({error: "Cliente não encontrado!"});
         // Remove o cliente usando o método destroy do Sequelize, que deleta o registro do banco de dados
         await customer.destroy();
 
