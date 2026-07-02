@@ -213,7 +213,35 @@ class ContactsControllers {
 
         return res.json(contact);
     };
+    
     async destroy(req, res) {
+        const customerId = Number(req.params.customerId);
+        const id = Number(req.params.id);
+
+        if (Number.isNaN(customerId) || Number.isNaN(id)) {
+            return res.status(400).json({ error: "Parametros invalidos!"});
+        }
+
+        const customer = await Customer.findByPk(customerId);
+
+        if (!customer) {
+            return res.status(404).json({ error: "Cliente nao encontrado!"});
+        }
+
+        const contact = await Contact.findOne({
+            where: {
+                customer_id: customerId,
+                id,
+            }
+        })
+
+        if (!contact) {
+            return res.status(404).json({ error: "Contato nao encontrado!"});
+        }
+
+        await contact.destroy();
+
+        return res.status(204).send();
 
     };
 

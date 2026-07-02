@@ -1,6 +1,7 @@
 import { Router } from "express";
 import customersController from "./app/controllers/CustomersController.js";
 import contactsController from "./app/controllers/ContactsControllers.js";
+import usersController from "./app/controllers/UsersController.js";
 
 const routes = new Router();
 
@@ -17,6 +18,13 @@ routes.get("/customers/:customerId/contacts/:id", contactsController.show);
 routes.post("/customers/:customerId/contacts", contactsController.create);
 routes.patch("/customers/:customerId/contacts/:id", contactsController.update);
 routes.delete("/customers/:customerId/contacts/:id", contactsController.destroy);
+
+// Rota de usuarios
+routes.get("/users", usersController.index);
+routes.get("/users/:id", usersController.show);
+routes.post("/users", usersController.create);
+routes.patch("/users/:id", usersController.update);
+routes.delete("/users/:id", usersController.destroy);
 
 
 export default routes;
