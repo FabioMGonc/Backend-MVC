@@ -122,7 +122,7 @@ class CustomersController {
         });
 
         if (!(await schema.isValid(req.body))){
-            return res.status(400).json({error: "Os dados são invalidos!"});
+            return res.status(400).json({error: "Os dados são inválidos!"});
         }
 
         // criação do novo cliente iterando a id com base no tamanho do array
@@ -138,7 +138,7 @@ class CustomersController {
         });
 
         if (!(await schema.isValid(req.body))){
-            return res.status(400).json({error: "Os dados são invalidos!"});
+            return res.status(400).json({error: "Os dados são inválidos!"});
         }
 
         const {name, email} = req.body;
