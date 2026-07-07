@@ -106,7 +106,7 @@ class UsersController {
         });
         
         if (!user) {
-            return res.status(404).json({ error: "Usuario não encontrado"})
+            return res.status(404).json({ error: "Usuário não encontrado!"})
         }
 
         return res.json(user);
@@ -123,11 +123,11 @@ class UsersController {
             })    
         })
         if (!(await schema.isValid(req.body))) {
-            return res.status(400).json({ error: "Dados invalidos" });
+            return res.status(400).json({ error: "Dados inválidos!" });
         }
         const userExists = await User.findOne({ where: { email: req.body.email } });
         if (userExists) {
-            return res.status(400).json({ error: "Confira os dados e garanta que ja nao exista um usuario com esse email" });
+            return res.status(400).json({ error: "Confira os dados e garanta que não exista um usuário com esse e-mail" });
         }
 
         const { id, name, email, createdAt, updatedAt } = await User.create(req.body);
@@ -135,11 +135,64 @@ class UsersController {
     };
 
     async update(req,res) {
+        const schema = Yup.object().shape({
+            name: Yup.string(),
+            email: Yup.string().email(),
+            oldPassword: Yup.string().min(8),
+            password: Yup.string().min(8).when("oldPassword", (oldPassword, field) => {
+                return oldPassword ? field.required() : field;
+            }),
+            provider: Yup.boolean(),    
+            passwordConfirmation: Yup.string().when("password", (password, field) => {
+                return password ? field.required().oneOf([Yup.ref("password")]) : field;
+            })    
+        });
 
+        if (!( await schema.isValid(req.body))) {
+            return res.status(400).json({ error: "Dados inválidos! Confira os campos digitados e tente novamente."});
+        };
+
+        const user = await User.findByPk(req.params.id);
+
+        if (!user) {
+            return res.status(404).json({ error: "Usuário não encontrado!"});
+        };
+
+        const { oldPassword } = req.body;
+
+        if(oldPassword && !(await user.checkPassword(oldPassword))) {
+            return res.status(401).json({ error: "As senhas não correspondem!" });
+        };
+        if (req.body.password && !oldPassword) {
+            return res.status(400).json({ error: "É necessário informar a senha antiga para altera-la!"});
+        };
+
+        const emailExists = await User.findOne({ where: { email: req.body.email }});
+
+        if (emailExists && emailExists.id !== user.id) {
+            return res.status(401).json({ error: "Este e-mail já esta em uso!"});
+        }
+        
+        const { id, name, email, provider, createdAt, updatedAt } = await user.update(req.body);
+
+        return res.status(200).json({ id, name, email, provider, createdAt, updatedAt});
     };
 
     async destroy(req, res) {
+        const user = await User.findByPk(Number(req.params.id));
+        
+        if (!user) {
+            return res.status(404).json({ error: "Usuário não encontrado!"});
+        };
 
+        if (user.provider) {
+            return res.status(400).json({ error: "Não é possível excluir um Administrador!" });
+        };
+
+        
+        await user.destroy();
+
+        return res.status(200).json({ message: "Usuário excluído com sucesso!"});
     };
 }
 
