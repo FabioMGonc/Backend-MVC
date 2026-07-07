@@ -2,9 +2,15 @@ import { Router } from "express";
 import customersController from "./app/controllers/CustomersController.js";
 import contactsController from "./app/controllers/ContactsControllers.js";
 import usersController from "./app/controllers/UsersController.js";
+import sessions from "./app/controllers/SessionsController.js"
+import auth from "./app/middlewares/auth.js";
 
 const routes = new Router();
 
+
+routes.post("/sessions", sessions.create);
+
+routes.use(auth)
 // Rota dos clientes
 routes.get("/customers", customersController.index);
 routes.get("/customers/:id", customersController.show);
