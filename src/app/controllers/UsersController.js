@@ -130,8 +130,8 @@ class UsersController {
             return res.status(400).json({ error: "Confira os dados e garanta que não exista um usuário com esse e-mail" });
         }
 
-        const { id, name, email, createdAt, updatedAt } = await User.create(req.body);
-        return res.status(201).json({ id, name, email, createdAt, updatedAt });
+        const { id, name, email, file_id, createdAt, updatedAt } = await User.create(req.body);
+        return res.status(201).json({ id, name, email,file_id, createdAt, updatedAt });
     };
 
     async update(req,res) {
@@ -140,11 +140,10 @@ class UsersController {
             email: Yup.string().email(),
             oldPassword: Yup.string().min(8),
             password: Yup.string().min(8).when("oldPassword", (oldPassword, field) => {
-                return oldPassword ? field.required() : field;
+                oldPassword ? field.required() : field;
             }),
             provider: Yup.boolean(),    
-            passwordConfirmation: Yup.string().when("password", (password, field) => {
-                return password ? field.required().oneOf([Yup.ref("password")]) : field;
+            passwordConfirmation: Yup.string().when("password", (password, field) => { password ? field.required().oneOf([Yup.ref("password")]) : field;
             })    
         });
 
@@ -173,9 +172,9 @@ class UsersController {
             return res.status(401).json({ error: "Este e-mail já esta em uso!"});
         }
         
-        const { id, name, email, provider, createdAt, updatedAt } = await user.update(req.body);
+        const { id, name, email, file_id, provider, createdAt, updatedAt } = await user.update(req.body);
 
-        return res.status(200).json({ id, name, email, provider, createdAt, updatedAt});
+        return res.status(200).json({ id, name, email, file_id, provider, createdAt, updatedAt});
     };
 
     async destroy(req, res) {

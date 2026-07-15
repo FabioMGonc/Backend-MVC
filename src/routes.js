@@ -4,6 +4,8 @@ import contactsController from "./app/controllers/ContactsControllers.js";
 import usersController from "./app/controllers/UsersController.js";
 import sessions from "./app/controllers/SessionsController.js"
 import auth from "./app/middlewares/auth.js";
+import upload from "./config/multer.js";
+import files from "./app/controllers/FilesController.js";
 
 const routes = new Router();
 
@@ -32,5 +34,7 @@ routes.post("/users", usersController.create);
 routes.patch("/users/:id", usersController.update);
 routes.delete("/users/:id", usersController.destroy);
 
+// Rota de upload
+routes.post("/files", upload.single("file"), files.create);
 
 export default routes;
